@@ -1,0 +1,42 @@
+name: CI
+
+# Runs on every push/PR so nothing broken ever reaches main. This is the
+# quality gate referenced in the README — Vercel's own GitHub integration
+# (see README "Deploying") handles the actual preview/production deploys,
+# so this workflow focuses purely on lint/typecheck/build correctness.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-build:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Dummy values so the build doesn't fail on missing secrets —
+          # no real email is sent during CI.
+          RESEND_API_KEY: ""
