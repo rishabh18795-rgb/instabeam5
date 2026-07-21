@@ -15,12 +15,12 @@ export const siteConfig = {
     "InstaBeam builds the site or store that converts, runs the ads that bring the right traffic, tracks every click in GA4, and sets up WhatsApp + AI bots that turn that traffic into paying customers — one connected team, not four disconnected vendors.",
   url: "https://instabeam.site",
   founder: "Rishabh Shukla",
-  email: "hello@instabeam.co",
+  email: "help.instabeam@gmail.com",
   whatsapp: {
-    number: "+919695113255",
-    href: "https://wa.me/919695113255",
+    number: "+919559133317",
+    href: "https://wa.me/919559133317",
     hrefWithMessage: (message: string) =>
-      `https://wa.me/919695113255?text=${encodeURIComponent(message)}`,
+      `https://wa.me/919559133317?text=${encodeURIComponent(message)}`,
   },
   /**
    * LinkedIn/Instagram URLs aren't confirmed yet — left empty rather than

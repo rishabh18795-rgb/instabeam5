@@ -80,8 +80,11 @@ export const enquirySchema = z.object({
   // team knows whether it was a quick hero audit request or a full
   // contact-page enquiry.
   source: z.enum(["hero-audit", "contact-page"]).optional(),
-  // Honeypot field — real users never fill this in.
-  company_website: z.string().max(0).optional().or(z.literal("")),
+  // Honeypot field — real users never fill this in. Deliberately not
+  // constrained to empty-only: a bot that fills it must still pass
+  // validation so the route handler can fake a silent success instead of
+  // returning a 400 that would tip the bot off.
+  company_website: z.string().max(200).optional().or(z.literal("")),
 });
 
 export type EnquiryInput = z.infer<typeof enquirySchema>;
