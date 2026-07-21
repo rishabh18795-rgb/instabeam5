@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { adSpendLabels, enquirySchema } from "@/lib/validations";
 import { sendEnquiryConfirmation, sendEnquiryNotification } from "@/lib/email";
 import { insertLead } from "@/lib/supabase";
+import { appendLeadToSheet } from "@/lib/google-sheets";
 import { getRequestMeta } from "@/lib/request-meta";
 
 export const runtime = "nodejs";
@@ -43,9 +44,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    // The lead is captured in the CRM and emailed independently — a
-    // failure in one channel never blocks the other, and never surfaces
-    // a "not configured" error to the visitor.
+    // The lead is captured in the CRM, appended to Google Sheets, and
+    // emailed independently — a failure in one channel never blocks the
+    // others, and never surfaces a "not configured" error to the visitor.
     await insertLead({
       name: data.name,
       company: data.company || null,
@@ -59,6 +60,10 @@ export async function POST(request: Request) {
       ip: meta.ip,
       user_agent: meta.userAgent,
     }).catch((err) => console.error("[enquiry] CRM insert failed:", err));
+
+    await appendLeadToSheet(data, meta).catch((err) =>
+      console.error("[enquiry] Google Sheets append failed:", err)
+    );
 
     await sendEnquiryNotification(data, meta).catch((err) =>
       console.error("[enquiry] notification email failed:", err)
