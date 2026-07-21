@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { GoogleTagManager } from "@next/third-parties/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -82,11 +82,14 @@ const organizationJsonLd = {
   },
 };
 
-// Public by design — GA4's client-side Measurement ID is meant to be
-// exposed in the page (unlike the service-role/secret keys elsewhere in
-// this project). Rendering the component is skipped entirely when unset
-// so local dev and preview builds without a real ID stay clean.
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+// Public by design — GTM's container ID is meant to be exposed in the
+// page (unlike the service-role/secret keys elsewhere in this project).
+// Rendering the component is skipped entirely when unset so local dev
+// and preview builds without a real ID stay clean. GA4 is no longer
+// initialized directly here — it now runs as a tag inside this GTM
+// container (see the migration report for the exact tags/triggers to
+// create in the GTM web UI).
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 // Google Consent Mode v2 — sets default consent to "denied" for both
 // analytics and advertising signals BEFORE the AdSense/GA4 scripts run,
@@ -145,6 +148,22 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-paper text-ink">
+        {/* Required by Google's GTM install spec: a <noscript> fallback
+            immediately after the opening <body> tag for visitors with
+            JavaScript disabled. @next/third-parties's GoogleTagManager
+            component only renders the <head> script half — this half
+            has to be added separately. */}
+        {GTM_ID && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+              title="Google Tag Manager"
+            />
+          </noscript>
+        )}
         <ConsentProvider>
           <ToastProvider>
             <ConditionalChrome>
@@ -169,14 +188,15 @@ export default function RootLayout({
             __html: JSON.stringify(organizationJsonLd),
           }}
         />
-        {/* @next/third-parties handles the gtag.js script, correct
-            loading strategy, and — via GA4 Enhanced Measurement's
-            History API listener — automatic page_view on client-side
-            App Router navigation, with no manual dataLayer/router-event
-            wiring needed and no risk of a duplicate page_view. Consent
-            Mode v2 defaults are already set above before this ever
-            loads, so GA4 automatically respects analytics_storage. */}
-        {GA_MEASUREMENT_ID && <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />}
+        {/* @next/third-parties loads gtm.js with next/script's
+            "afterInteractive" strategy — it executes after hydration,
+            well after the synchronous consent-default script in <head>
+            has already run, so GTM's own consent-aware tag firing sees
+            the correct default the moment it initializes. GA4 itself is
+            no longer loaded directly here — it's configured as a tag
+            inside this GTM container instead (see the migration report
+            for the exact setup). */}
+        {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
       </body>
     </html>
   );
