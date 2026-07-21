@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendNewsletterSignupNotification } from "@/lib/email";
+import { insertLead } from "@/lib/supabase";
+import { getRequestMeta } from "@/lib/request-meta";
 
 export const runtime = "nodejs";
 
 const newsletterSchema = z.object({
-  email: z.string().email("Enter a valid email address."),
+  email: z.string().trim().email("Enter a valid email address."),
+  // Honeypot — real users never fill this in. Not empty-only (see
+  // src/lib/validations.ts) so a filled-in value still validates and can
+  // be silently faked as success rather than surfacing a 400.
+  company_website: z.string().max(200).optional().or(z.literal("")),
 });
 
 // Minimal in-memory rate limit — same pattern as /api/enquiry.
@@ -25,11 +31,9 @@ function isRateLimited(ip: string) {
 
 export async function POST(request: Request) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const meta = getRequestMeta(request);
 
-    if (isRateLimited(ip)) {
+    if (isRateLimited(meta.ip)) {
       return NextResponse.json(
         { ok: false, error: "Too many requests. Please try again shortly." },
         { status: 429 }
@@ -37,27 +41,26 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { email } = newsletterSchema.parse(body);
+    const { email, company_website } = newsletterSchema.parse(body);
 
-    if (!process.env.RESEND_API_KEY) {
-      console.error(
-        "[newsletter] RESEND_API_KEY is not configured — signup not recorded:",
-        email
-      );
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Newsletter signup isn't configured yet. Please try again later.",
-        },
-        { status: 503 }
-      );
+    // Honeypot tripped — silently pretend success so bots don't learn.
+    if (company_website) {
+      return NextResponse.json({ ok: true });
     }
 
-    // Notify the team of the new subscriber. Phase 3 swaps this for a
-    // proper list/DB (e.g. Resend Audiences or a Supabase table) — for
-    // now, every signup lands as an email so nothing is silently lost.
-    await sendNewsletterSignupNotification(email);
+    await insertLead({
+      name: email.split("@")[0],
+      email,
+      message: "Newsletter signup",
+      page: meta.sourcePage,
+      source: "newsletter",
+      ip: meta.ip,
+      user_agent: meta.userAgent,
+    }).catch((err) => console.error("[newsletter] CRM insert failed:", err));
+
+    await sendNewsletterSignupNotification(email, meta).catch((err) =>
+      console.error("[newsletter] notification email failed:", err)
+    );
 
     return NextResponse.json({ ok: true });
   } catch (error) {

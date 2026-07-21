@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { enquirySchema } from "@/lib/validations";
+import { adSpendLabels, enquirySchema } from "@/lib/validations";
 import { sendEnquiryConfirmation, sendEnquiryNotification } from "@/lib/email";
+import { insertLead } from "@/lib/supabase";
+import { getRequestMeta } from "@/lib/request-meta";
 
 export const runtime = "nodejs";
 
-// Minimal in-memory rate limit — good enough for Phase 1. Phase 3 swaps
-// this for a Supabase-backed limiter shared across serverless instances.
+// Minimal in-memory rate limit — good enough for a single warm serverless
+// instance. Phase 3 swaps this for a Supabase-backed limiter shared
+// across instances.
 const submissionsByIp = new Map<string, number[]>();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
@@ -23,11 +26,9 @@ function isRateLimited(ip: string) {
 
 export async function POST(request: Request) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const meta = getRequestMeta(request);
 
-    if (isRateLimited(ip)) {
+    if (isRateLimited(meta.ip)) {
       return NextResponse.json(
         { ok: false, error: "Too many requests. Please try again shortly." },
         { status: 429 }
@@ -42,22 +43,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    if (!process.env.RESEND_API_KEY) {
-      console.error(
-        "[enquiry] RESEND_API_KEY is not configured — enquiry not delivered:",
-        data
-      );
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Email delivery isn't configured yet. Please reach us on WhatsApp instead.",
-        },
-        { status: 503 }
-      );
-    }
+    // The lead is captured in the CRM and emailed independently — a
+    // failure in one channel never blocks the other, and never surfaces
+    // a "not configured" error to the visitor.
+    await insertLead({
+      name: data.name,
+      company: data.company || null,
+      website: data.websiteUrl || null,
+      email: data.email,
+      phone: data.phone || null,
+      budget: data.adSpend ? adSpendLabels[data.adSpend] : null,
+      message: data.message,
+      page: meta.sourcePage,
+      source: data.source ?? "contact-page",
+      ip: meta.ip,
+      user_agent: meta.userAgent,
+    }).catch((err) => console.error("[enquiry] CRM insert failed:", err));
 
-    await sendEnquiryNotification(data);
+    await sendEnquiryNotification(data, meta).catch((err) =>
+      console.error("[enquiry] notification email failed:", err)
+    );
     // Confirmation email is best-effort — a failure here shouldn't fail
     // the whole request since the team already has the lead.
     await sendEnquiryConfirmation(data).catch((err) =>
