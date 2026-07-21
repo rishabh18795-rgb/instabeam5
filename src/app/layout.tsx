@@ -1,5 +1,4 @@
-import type { Metadata, Viewport } from "next"; 
-import Script from "next/script";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -87,20 +86,22 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <head>
+        {/* Plain <script> tag, exactly as Google's AdSense snippet
+            specifies — next/script adds a data-nscript attribute that
+            adsbygoogle.js flags with a console warning ("head tag doesn't
+            support data-nscript attribute"). `async` already makes this
+            non-render-blocking without needing next/script's strategy
+            prop. Nothing else React-managed lives in <head> — AdSense
+            mutates its surroundings once it loads, which caused a real
+            hydration mismatch when the JSON-LD script used to sit right
+            next to it here (see the moved copy at the end of <body>). */}
         <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd),
-          }}
-        />
-      </head>
-      <body className="flex min-h-full flex-col bg-paper text-ink">
-        <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114058216046667"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
+      </head>
+      <body className="flex min-h-full flex-col bg-paper text-ink">
         <ToastProvider>
           <ConditionalChrome>
             <Navbar />
@@ -111,6 +112,17 @@ export default function RootLayout({
             <WhatsAppButton />
           </ConditionalChrome>
         </ToastProvider>
+        {/* Static, deterministic content — suppressHydrationWarning is
+            safe here and guards against any future third-party script
+            (AdSense or otherwise) mutating nearby <body> nodes the same
+            way one did in <head>. */}
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
+        />
       </body>
     </html>
   );
