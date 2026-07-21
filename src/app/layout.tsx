@@ -4,6 +4,8 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
+import { ConditionalChrome } from "@/components/layout/ConditionalChrome";
+import { ToastProvider } from "@/components/ui/Toast";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -98,10 +100,16 @@ export default function RootLayout({
   />
       </head>
       <body className="flex min-h-full flex-col bg-paper text-ink">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <WhatsAppButton />
+        <ToastProvider>
+          <ConditionalChrome>
+            <Navbar />
+          </ConditionalChrome>
+          <main className="flex-1">{children}</main>
+          <ConditionalChrome>
+            <Footer />
+            <WhatsAppButton />
+          </ConditionalChrome>
+        </ToastProvider>
       </body>
     </html>
   );
