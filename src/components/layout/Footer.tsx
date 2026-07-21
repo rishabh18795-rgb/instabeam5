@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Instagram, Linkedin, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Container";
+import { CookiePreferencesButton } from "@/components/consent/CookiePreferencesButton";
 import { navLinks, services, siteConfig } from "@/lib/site-config";
 
 const socialLinks = [
@@ -146,13 +147,17 @@ export function Footer() {
               </div>
             )}
           </div>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-6">
             <Link href="/legal/privacy" className="text-xs text-mist-500 hover:text-ink">
               Privacy Policy
             </Link>
             <Link href="/legal/terms" className="text-xs text-mist-500 hover:text-ink">
               Terms of Service
             </Link>
+            <Link href="/legal/cookies" className="text-xs text-mist-500 hover:text-ink">
+              Cookie Policy
+            </Link>
+            <CookiePreferencesButton />
           </div>
         </div>
       </Container>

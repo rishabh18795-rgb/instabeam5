@@ -98,7 +98,19 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="font-display text-lg font-semibold text-ink">7. Changes to this policy</h2>
+          <h2 className="font-display text-lg font-semibold text-ink">7. Cookies</h2>
+          <p className="mt-2">
+            We use analytics and advertising cookies, subject to your
+            consent — see our{" "}
+            <a href="/legal/cookies" className="text-ink underline underline-offset-2">
+              Cookie Policy
+            </a>{" "}
+            for the full list and how to change your preference.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="font-display text-lg font-semibold text-ink">8. Changes to this policy</h2>
           <p className="mt-2">
             We may update this policy as the site evolves. Material changes
             will update the &quot;last updated&quot; date above.
