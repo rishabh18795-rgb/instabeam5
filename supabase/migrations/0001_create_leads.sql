@@ -16,7 +16,8 @@ create table if not exists leads (
   budget text,
   message text,
   page text,
-  status text not null default 'New',
+  status text not null default 'New'
+    check (status in ('New', 'Contacted', 'Qualified', 'Won', 'Lost')),
   source text,
   notes text,
   ip text,
