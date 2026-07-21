@@ -5,6 +5,7 @@ import { sendEnquiryConfirmation, sendEnquiryNotification } from "@/lib/email";
 import { insertLead } from "@/lib/supabase";
 import { appendLeadToSheet } from "@/lib/google-sheets";
 import { getRequestMeta } from "@/lib/request-meta";
+import { logEnvStatus } from "@/lib/env-check";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,7 @@ function isRateLimited(ip: string) {
 export async function POST(request: Request) {
   try {
     const meta = getRequestMeta(request);
+    logEnvStatus("enquiry");
 
     if (isRateLimited(meta.ip)) {
       return NextResponse.json(
