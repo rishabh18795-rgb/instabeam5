@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -78,6 +79,12 @@ const organizationJsonLd = {
   },
 };
 
+// Public by design — GA4's client-side Measurement ID is meant to be
+// exposed in the page (unlike the service-role/secret keys elsewhere in
+// this project). Rendering the component is skipped entirely when unset
+// so local dev and preview builds without a real ID stay clean.
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -123,6 +130,12 @@ export default function RootLayout({
             __html: JSON.stringify(organizationJsonLd),
           }}
         />
+        {/* @next/third-parties handles the gtag.js script, correct
+            loading strategy, and — via GA4 Enhanced Measurement's
+            History API listener — automatic page_view on client-side
+            App Router navigation, with no manual dataLayer/router-event
+            wiring needed and no risk of a duplicate page_view. */}
+        {GA_MEASUREMENT_ID && <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />}
       </body>
     </html>
   );
