@@ -16,10 +16,10 @@ clean before moving to the next.
 
 | Phase | Scope | Status |
 |---|---|---|
-| **1. Foundation** | Branding, homepage, navigation, footer, contact page + working enquiry form, SEO baseline, CI, Vercel-ready config | ✅ Done — this codebase |
-| 2. Business Website | Service pages, pricing, case studies, about, team, blog, full SEO, schema | Not started |
-| 3. Backend & Admin | Auth, Admin Portal, Supabase/Postgres, Cloudinary media, analytics | Not started |
-| 4. Final Polish | Performance/accessibility pass, security review, full CI/CD, production launch | Not started |
+| **1. Foundation** | Branding, homepage, navigation, footer, contact page + working enquiry form, SEO baseline, CI, Vercel-ready config | ✅ Done |
+| **2. Business Website** | Service pages, pricing, case studies, about, blog, full SEO, schema | ✅ Done |
+| **3. Backend & Admin** | Resend email on every form, Supabase CRM (`leads` table), password-protected `/admin` dashboard (search/filter/pagination/CSV export/status/notes/delete), WhatsApp follow-up CTA | ✅ Done — this codebase |
+| 4. Final Polish | Performance/accessibility pass, security review, full CI/CD | Ongoing |
 
 **What's real right now:** every page in this repo is live content — no
 Lorem Ipsum, no dummy routes. Navigation only links to pages that exist
@@ -34,11 +34,15 @@ dedicated `/services/[slug]`, `/case-studies`, `/blog`, etc.
 - **UI:** React 19, TypeScript, Tailwind CSS v4 (CSS-first `@theme` config)
 - **Animation:** Framer Motion (component-level), GSAP (installed, reserved
   for Phase 2 scroll-driven sequences)
-- **Forms/validation:** react-hook-form + Zod
+- **Forms/validation:** react-hook-form + Zod, honeypot + rate limiting
 - **Email:** Resend (transactional enquiry notifications + confirmations)
+- **CRM:** Supabase (Postgres) — every submission is inserted into the
+  `leads` table independent of email delivery
+- **Admin:** `/admin` — signed-cookie password auth (no external provider),
+  full leads dashboard
 - **Icons:** lucide-react
-- **Planned (Phase 3):** Supabase (Postgres) + Prisma for the Admin Portal,
-  Cloudinary for media, NextAuth for admin authentication
+- **Planned (Phase 4):** Cloudinary media library, NextAuth (if multi-user
+  admin access is ever needed), GA4 analytics dashboard
 - **Hosting:** Vercel
 
 ---
@@ -71,24 +75,28 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment variables
 
-See `.env.example` for the full, commented list. The only variable required
-for Phase 1 to be fully functional:
+See `.env.example` for the full, commented list.
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `RESEND_API_KEY` | For working email | Powers the `/contact` enquiry form. Get a key at [resend.com](https://resend.com), verify the `instabeam.site` sending domain, then set this. |
-| `ENQUIRY_NOTIFY_EMAIL` | No (defaults to `hello@instabeam.co`) | Where new enquiries are delivered |
+| `RESEND_API_KEY` | For working email | Get a key at [resend.com](https://resend.com), verify the `instabeam.site` sending domain, then set this. |
+| `ENQUIRY_NOTIFY_EMAIL` | No (defaults to `help.instabeam@gmail.com`) | Where new enquiry/newsletter notifications are delivered |
 | `ENQUIRY_FROM_EMAIL` | No | The "from" address for outbound mail — must be on a Resend-verified domain |
+| `SUPABASE_URL` | For the CRM/admin panel | Project URL from Supabase → Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | For the CRM/admin panel | Server-only key — never exposed to the client |
+| `ADMIN_PASSWORD` | For `/admin` login | Password required to sign in |
+| `ADMIN_SESSION_SECRET` | For `/admin` login | Random secret signing the session cookie — generate with `openssl rand -hex 32` |
 
-**Without `RESEND_API_KEY` set**, the site still builds and runs correctly —
-the contact form validates input normally but returns a clear 503
-("Email delivery isn't configured yet, reach us on WhatsApp instead")
-instead of silently failing. This was a deliberate choice so the repo is
-never in a broken state before secrets are configured.
+**Every form submission is inserted into the Supabase `leads` table and
+emailed independently** — a failure in one channel never blocks the other,
+and the visitor never sees a "not configured" error. Run
+`supabase/migrations/0001_create_leads.sql` against your Supabase project
+before setting the CRM env vars.
 
-Phase 3 will add Supabase, NextAuth, and Cloudinary variables — placeholders
-are already documented (commented out) in `.env.example` so the shape is
-known ahead of time.
+Without `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` set, `/admin` shows a
+load error but the public site and email delivery are unaffected. Without
+`RESEND_API_KEY` set, leads are still captured in Supabase but no email is
+sent (logged server-side).
 
 ---
 
@@ -155,26 +163,39 @@ src/
     contact/page.tsx        # Contact page
     legal/privacy/page.tsx  # Privacy policy
     legal/terms/page.tsx    # Terms of service
-    api/enquiry/route.ts    # POST handler — validates + emails enquiries
+    admin/page.tsx          # Leads dashboard (client-rendered, session-gated)
+    admin/login/page.tsx    # Admin password login
+    api/enquiry/route.ts    # POST — validates, inserts lead, emails enquiry
+    api/newsletter/route.ts # POST — validates, inserts lead, emails signup
+    api/admin/login|logout/route.ts   # Session cookie issue/clear
+    api/admin/leads/route.ts          # GET (list) / PATCH (status,notes) / DELETE
+    api/admin/leads/export/route.ts   # CSV export
+
+  middleware.ts            # Gates /admin and /api/admin behind the session cookie
 
   components/
     brand/Logo.tsx          # Live SVG logo (mark + wordmark)
     graphics/                # Custom illustrations — AuroraBackground,
                               # GridPattern, FunnelIllustration (all
                               # hand-built SVG/CSS, zero stock imagery)
-    layout/                  # Navbar, Footer
-    ui/                      # Button, Container, SectionHeading — shared
+    layout/                  # Navbar, Footer, WhatsAppButton, ConditionalChrome
+    ui/                      # Button, Container, SectionHeading, Toast — shared
                               # primitives used across every page
     home/                    # Homepage sections (Hero, ServicesGrid, ...)
     contact/ContactForm.tsx  # react-hook-form + Zod client form
+    shared/WhatsAppCta.tsx   # Post-submit "Chat on WhatsApp" CTA
 
   lib/
     site-config.ts    # Single source of truth for copy (services, process
                         # steps, FAQ, stats) — seeds the Phase 3 database
     validations.ts     # Zod schemas shared by client + API route
     email.ts           # Resend client + email templates
+    supabase.ts         # Service-role Supabase client + leads CRUD
+    admin-auth.ts        # Signed session cookie (HMAC) + password check
+    request-meta.ts       # IP / User-Agent / referrer / timestamp capture
     utils.ts            # cn() class-merging helper
 
+supabase/migrations/     # SQL — leads table schema
 public/logo/            # Flat SVG brand assets (see docs/brand-guidelines.md)
 docs/                    # Brand guidelines, roadmap
 .github/workflows/       # CI

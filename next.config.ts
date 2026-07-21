@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -5,6 +6,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   devIndicators: false,
+  // Pins the workspace root to this repo — otherwise Next.js can infer it
+  // from an unrelated lockfile higher up the local filesystem tree.
+  outputFileTracingRoot: path.resolve(__dirname),
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
