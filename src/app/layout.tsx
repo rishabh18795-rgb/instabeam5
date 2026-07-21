@@ -87,19 +87,20 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <head>
-   <script
-  async
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114058216046667"
-  crossOrigin="anonymous"
-></script>
-  <script
-    type="application/ld+json"
-    dangerouslySetInnerHTML={{
-      __html: JSON.stringify(organizationJsonLd),
-    }}
-  />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
+        />
       </head>
       <body className="flex min-h-full flex-col bg-paper text-ink">
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114058216046667"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <ToastProvider>
           <ConditionalChrome>
             <Navbar />
