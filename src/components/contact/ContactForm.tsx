@@ -13,6 +13,8 @@ import {
   type EnquiryInput,
 } from "@/lib/validations";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
+import { WhatsAppCta } from "@/components/shared/WhatsAppCta";
 import { cn } from "@/lib/utils";
 
 const serviceOptions: { value: (typeof enquiryServices)[number]; label: string }[] = [
@@ -26,6 +28,7 @@ const inputClasses =
   "w-full rounded-xl border border-mist-200 bg-paper px-4 py-3 text-[15px] text-ink placeholder:text-mist-400 transition-colors focus:border-beam-500 focus:outline-none focus:ring-2 focus:ring-beam-100";
 
 export function ContactForm() {
+  const toast = useToast();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -55,16 +58,21 @@ export function ContactForm() {
       const json = await res.json();
 
       if (!res.ok || !json.ok) {
-        setErrorMessage(json.error ?? "Something went wrong. Please try again.");
+        const message = json.error ?? "Something went wrong. Please try again.";
+        setErrorMessage(message);
         setStatus("error");
+        toast.show("error", message);
         return;
       }
 
       setStatus("success");
+      toast.show("success", "Message sent — we'll be in touch shortly.");
       reset();
     } catch {
-      setErrorMessage("Network error. Please check your connection and try again.");
+      const message = "Network error. Please check your connection and try again.";
+      setErrorMessage(message);
       setStatus("error");
+      toast.show("error", message);
     }
   };
 
@@ -77,15 +85,18 @@ export function ContactForm() {
       >
         <CheckCircle2 className="h-12 w-12 text-beam-600" strokeWidth={1.5} />
         <h3 className="mt-5 font-display text-xl font-semibold tracking-tight text-ink">
-          Message sent.
+          Thank you. Our team will contact you shortly.
         </h3>
         <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-mist-600">
-          Thanks — someone from the InstaBeam team will get back to you within
-          one business day. Check your inbox for a confirmation.
+          Someone from the InstaBeam team will get back to you within one
+          business day. Check your inbox for a confirmation.
         </p>
-        <Button variant="secondary" className="mt-6" onClick={() => setStatus("idle")}>
-          Send another message
-        </Button>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <WhatsAppCta message="Hi InstaBeam, I just submitted the contact form and wanted to follow up." />
+          <Button variant="secondary" onClick={() => setStatus("idle")}>
+            Send another message
+          </Button>
+        </div>
       </motion.div>
     );
   }

@@ -3,9 +3,13 @@
 import { useState } from "react";
 import { Send, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
+import { WhatsAppCta } from "@/components/shared/WhatsAppCta";
 
 export function NewsletterBox() {
+  const toast = useToast();
   const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -17,17 +21,20 @@ export function NewsletterBox() {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, company_website: honeypot }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "Something went wrong.");
       }
       setStatus("success");
+      toast.show("success", "You're on the list — check your inbox.");
       setEmail("");
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong.";
       setStatus("error");
-      setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
+      setErrorMsg(message);
+      toast.show("error", message);
     }
   };
 
@@ -44,12 +51,26 @@ export function NewsletterBox() {
       </p>
 
       {status === "success" ? (
-        <div className="mt-5 flex items-center gap-2 rounded-xl border border-beam-400/40 bg-beam-400/10 px-4 py-3 text-sm text-beam-200">
-          <Check className="h-4 w-4 shrink-0" />
-          You&apos;re on the list — check your inbox.
+        <div className="mt-5 space-y-3">
+          <div className="flex items-center gap-2 rounded-xl border border-beam-400/40 bg-beam-400/10 px-4 py-3 text-sm text-beam-200">
+            <Check className="h-4 w-4 shrink-0" />
+            You&apos;re on the list — check your inbox.
+          </div>
+          <WhatsAppCta message="Hi InstaBeam, I just subscribed to the newsletter and had a question." />
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <div className="hidden" aria-hidden="true">
+            <label htmlFor="newsletter-company-website">Company website</label>
+            <input
+              id="newsletter-company-website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+            />
+          </div>
           <input
             type="email"
             required

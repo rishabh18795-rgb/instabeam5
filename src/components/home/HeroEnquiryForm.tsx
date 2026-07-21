@@ -13,6 +13,8 @@ import {
 } from "@/lib/validations";
 import { Button } from "@/components/ui/Button";
 import { Magnetic } from "@/components/ui/Magnetic";
+import { useToast } from "@/components/ui/Toast";
+import { WhatsAppCta } from "@/components/shared/WhatsAppCta";
 import { cn } from "@/lib/utils";
 
 type FormValues = Pick<
@@ -24,6 +26,7 @@ const heroInputClasses =
   "w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-paper placeholder:text-mist-500 transition-colors focus:border-beam-400 focus:outline-none focus:ring-2 focus:ring-beam-400/20";
 
 export function HeroEnquiryForm() {
+  const toast = useToast();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -71,16 +74,21 @@ export function HeroEnquiryForm() {
       const json = await res.json();
 
       if (!res.ok || !json.ok) {
-        setErrorMessage(json.error ?? "Something went wrong. Please try again.");
+        const message = json.error ?? "Something went wrong. Please try again.";
+        setErrorMessage(message);
         setStatus("error");
+        toast.show("error", message);
         return;
       }
 
       setStatus("success");
+      toast.show("success", "Audit request sent — we'll be in touch shortly.");
       reset();
     } catch {
-      setErrorMessage("Network error. Please check your connection and try again.");
+      const message = "Network error. Please check your connection and try again.";
+      setErrorMessage(message);
       setStatus("error");
+      toast.show("error", message);
     }
   };
 
@@ -93,14 +101,22 @@ export function HeroEnquiryForm() {
       >
         <CheckCircle2 className="h-10 w-10 text-beam-400" strokeWidth={1.5} />
         <h3 className="mt-4 font-display text-lg font-semibold text-paper">
-          Audit request sent.
+          Thank you. Our team will contact you shortly.
         </h3>
         <p className="mt-2 max-w-xs text-sm leading-relaxed text-mist-400">
           We&apos;ll review your funnel and get back to you within one business day.
         </p>
-        <Button variant="secondary" size="sm" className="mt-5 border-white/15 bg-transparent text-paper hover:bg-white/5" onClick={() => setStatus("idle")}>
-          Request another audit
-        </Button>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          <WhatsAppCta message="Hi InstaBeam, I just requested a free funnel audit and wanted to follow up." />
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border-white/15 bg-transparent text-paper hover:bg-white/5"
+            onClick={() => setStatus("idle")}
+          >
+            Request another audit
+          </Button>
+        </div>
       </motion.div>
     );
   }
