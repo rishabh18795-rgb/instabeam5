@@ -8,7 +8,9 @@ import { ConditionalChrome } from "@/components/layout/ConditionalChrome";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ConsentProvider } from "@/components/consent/ConsentProvider";
 import { CookieConsentBanner } from "@/components/consent/CookieConsentBanner";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { CONSENT_COOKIE_NAME } from "@/lib/consent";
+import { META_PIXEL_ID } from "@/lib/facebookPixel";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -164,6 +166,20 @@ export default function RootLayout({
             />
           </noscript>
         )}
+        {/* Meta's own official noscript fallback for the Pixel — same
+            reasoning as the GTM one above. */}
+        {META_PIXEL_ID && (
+          <noscript>
+            {/* eslint-disable-next-line @next/next/no-img-element -- 1x1 tracking beacon, not a content image; next/image doesn't apply here. */}
+            <img
+              height="1"
+              width="1"
+              alt=""
+              style={{ display: "none" }}
+              src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            />
+          </noscript>
+        )}
         <ConsentProvider>
           <ToastProvider>
             <ConditionalChrome>
@@ -197,6 +213,7 @@ export default function RootLayout({
             inside this GTM container instead (see the migration report
             for the exact setup). */}
         {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
+        <MetaPixel />
       </body>
     </html>
   );
