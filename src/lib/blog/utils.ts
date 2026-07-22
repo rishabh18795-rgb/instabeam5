@@ -58,3 +58,39 @@ export function formatDate(iso: string): string {
     day: "numeric",
   });
 }
+
+/**
+ * Where to insert Display Ads inside an article's blocks — one around
+ * 30–40% through, and (only for long enough posts) one right before the
+ * final section. Skipped entirely for short posts. Insertion points are
+ * always pushed forward until the block right before them isn't a
+ * heading, so an ad never gets sandwiched directly under a heading with
+ * no content yet under it.
+ */
+export function getAdInsertionIndices(blocks: ContentBlock[]): number[] {
+  const total = blocks.length;
+  if (total < 8) return [];
+
+  const isHeading = (b: ContentBlock) => b.type === "h2" || b.type === "h3";
+  const nextSafeIndex = (from: number) => {
+    let i = Math.min(Math.max(from, 1), total);
+    while (i < total && isHeading(blocks[i - 1])) i++;
+    return i;
+  };
+
+  const indices: number[] = [];
+  const firstIndex = nextSafeIndex(Math.round(total * 0.35));
+  if (firstIndex < total) indices.push(firstIndex);
+
+  if (total >= 14) {
+    const lastH2Index = blocks.reduce(
+      (acc, b, i) => (b.type === "h2" ? i : acc),
+      -1
+    );
+    if (lastH2Index > firstIndex + 2) {
+      indices.push(lastH2Index);
+    }
+  }
+
+  return indices;
+}

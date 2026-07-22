@@ -3,6 +3,7 @@ import { Container } from "@/components/ui/Container";
 import { GridPattern } from "@/components/graphics/GridPattern";
 import { BlogSearch } from "@/components/blog/BlogSearch";
 import { NewsletterBox } from "@/components/blog/NewsletterBox";
+import { DisplayAd } from "@/components/ads/DisplayAd";
 import { getAllPosts } from "@/lib/blog/utils";
 import { siteConfig } from "@/lib/site-config";
 
@@ -61,6 +62,12 @@ export default function BlogIndexPage() {
       <section className="bg-paper py-16 sm:py-20">
         <Container>
           <BlogSearch posts={posts} />
+        </Container>
+      </section>
+
+      <section className="bg-paper py-4">
+        <Container>
+          <DisplayAd />
         </Container>
       </section>
 

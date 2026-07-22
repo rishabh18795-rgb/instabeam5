@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { GridPattern } from "@/components/graphics/GridPattern";
 import { FaqAccordion } from "@/components/shared/FaqAccordion";
+import { DisplayAd } from "@/components/ads/DisplayAd";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -181,6 +182,12 @@ export default function PricingPage() {
               writing, before you commit to anything.
             </p>
           </div>
+        </Container>
+      </section>
+
+      <section className="bg-paper py-4">
+        <Container>
+          <DisplayAd />
         </Container>
       </section>
 
