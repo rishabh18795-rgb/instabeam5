@@ -3,12 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock, ArrowLeft } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
 import { BlogContent } from "@/components/blog/BlogContent";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { ShareButtons } from "@/components/blog/ShareButtons";
+import { SocialFollowBar } from "@/components/blog/SocialFollowBar";
 import { AuthorBox } from "@/components/blog/AuthorBox";
 import { NewsletterBox } from "@/components/blog/NewsletterBox";
 import { PostCard } from "@/components/blog/PostCard";
+import { FaqAccordion } from "@/components/shared/FaqAccordion";
 import { categoryLabels } from "@/lib/blog/types";
 import {
   getAllPosts,
@@ -59,6 +62,9 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound();
 
   const toc = tableOfContents(post);
+  if (post.faqs && post.faqs.length > 0) {
+    toc.push({ id: "faqs", text: "FAQs", level: 2 });
+  }
   const related = getRelatedPosts(post);
   const url = `${siteConfig.url}/blog/${post.slug}`;
 
@@ -88,6 +94,19 @@ export default async function BlogPostPage({ params }: Props) {
     ],
   };
 
+  const faqJsonLd =
+    post.faqs && post.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: post.faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: { "@type": "Answer", text: faq.answer },
+          })),
+        }
+      : null;
+
   return (
     <>
       <script
@@ -98,6 +117,12 @@ export default async function BlogPostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       <article>
         <section className="border-b border-mist-100 bg-paper pb-12 pt-16 sm:pt-20">
@@ -130,7 +155,7 @@ export default async function BlogPostPage({ params }: Props) {
 
             <div className="mt-6 flex items-center justify-between border-t border-mist-100 pt-6">
               <span className="text-sm text-mist-500">By {siteConfig.founder}</span>
-              <ShareButtons title={post.title} slug={post.slug} />
+              <SocialFollowBar title={post.title} slug={post.slug} />
             </div>
           </Container>
         </section>
@@ -140,6 +165,31 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_220px]">
               <div className="max-w-3xl">
                 <BlogContent blocks={post.content} />
+
+                {post.faqs && post.faqs.length > 0 && (
+                  <div id="faqs" className="scroll-mt-28 pt-10">
+                    <h2 className="font-display text-2xl font-semibold tracking-tight text-ink">
+                      Frequently asked questions
+                    </h2>
+                    <div className="mt-6">
+                      <FaqAccordion items={post.faqs} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-10 flex flex-col items-start gap-4 rounded-3xl border border-mist-200 bg-mist-50 p-8 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-display text-lg font-semibold tracking-tight text-ink">
+                      Want this fixed on your own funnel?
+                    </p>
+                    <p className="mt-1 text-sm text-mist-600">
+                      Get a free, no-obligation audit of your ads, tracking, and site.
+                    </p>
+                  </div>
+                  <Button href="/contact" variant="gradient" className="w-full sm:w-auto shrink-0">
+                    Book a Free Audit
+                  </Button>
+                </div>
 
                 <div className="mt-10 border-t border-mist-100 pt-8">
                   <ShareButtons title={post.title} slug={post.slug} />

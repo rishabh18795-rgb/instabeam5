@@ -7,8 +7,8 @@ import { Container } from "@/components/ui/Container";
 // Real names only — no invented clients. Typographic wordmarks (not
 // image logos) since we don't have brand mark files for these yet;
 // swap in actual logo assets via the Admin Portal in Phase 3.
-const clients = ["MechServi", "Guerdon Kicks"];
-const openSlots = 2;
+const clients = ["MechServi", "Guerdon Kicks", "Hasiru Nidhi"];
+const openSlots = 1;
 
 export function TrustSection() {
   return (

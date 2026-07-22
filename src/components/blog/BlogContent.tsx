@@ -1,5 +1,6 @@
 import { cloneElement } from "react";
-import { Info, Lightbulb, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import { Info, Lightbulb, TriangleAlert, ArrowUpRight, ExternalLink } from "lucide-react";
 import type { ContentBlock } from "@/lib/blog/types";
 import { getAdInsertionIndices } from "@/lib/blog/utils";
 import { DisplayAd } from "@/components/ads/DisplayAd";
@@ -78,6 +79,41 @@ function renderBlock(block: ContentBlock) {
         </div>
       );
     }
+    case "links":
+      return (
+        <div className="rounded-2xl border border-mist-200 bg-mist-50 px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-mist-500">
+            {block.heading ?? "Related reading"}
+          </p>
+          <ul className="mt-3 space-y-2">
+            {block.items.map((item) =>
+              item.external ? (
+                <li key={item.href}>
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[15px] font-medium text-beam-700 underline decoration-beam-200 underline-offset-2 hover:text-beam-800"
+                  >
+                    {item.text}
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                  </a>
+                </li>
+              ) : (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="inline-flex items-center gap-1.5 text-[15px] font-medium text-beam-700 underline decoration-beam-200 underline-offset-2 hover:text-beam-800"
+                  >
+                    {item.text}
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                  </Link>
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+      );
     default:
       return null;
   }

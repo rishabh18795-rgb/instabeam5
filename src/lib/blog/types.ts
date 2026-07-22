@@ -1,5 +1,6 @@
 export type BlogCategory =
   | "meta-ads"
+  | "paid-ads"
   | "whatsapp"
   | "shopify"
   | "tracking"
@@ -8,6 +9,7 @@ export type BlogCategory =
 
 export const categoryLabels: Record<BlogCategory, string> = {
   "meta-ads": "Meta Ads",
+  "paid-ads": "Paid Ads Strategy",
   whatsapp: "WhatsApp Automation",
   shopify: "Shopify",
   tracking: "Tracking & Attribution",
@@ -22,7 +24,14 @@ export type ContentBlock =
   | { type: "ul"; items: string[] }
   | { type: "ol"; items: string[] }
   | { type: "quote"; text: string }
-  | { type: "callout"; tone: "tip" | "warning" | "info"; text: string };
+  | { type: "callout"; tone: "tip" | "warning" | "info"; text: string }
+  | {
+      type: "links";
+      heading?: string;
+      items: { text: string; href: string; external?: boolean }[];
+    };
+
+export type BlogFaq = { question: string; answer: string };
 
 export type BlogPost = {
   slug: string;
@@ -31,6 +40,7 @@ export type BlogPost = {
   category: BlogCategory;
   publishedAt: string;
   content: ContentBlock[];
+  faqs?: BlogFaq[];
 };
 
 export const author = {

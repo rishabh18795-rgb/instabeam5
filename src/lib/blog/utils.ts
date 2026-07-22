@@ -17,6 +17,8 @@ function blockWordCount(block: ContentBlock): number {
         (sum, item) => sum + item.trim().split(/\s+/).filter(Boolean).length,
         0
       );
+    case "links":
+      return 0;
   }
 }
 
