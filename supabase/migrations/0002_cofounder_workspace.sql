@@ -782,6 +782,8 @@ create policy workspaces_select on public.workspaces for select to authenticated
 create policy members_select on public.workspace_members for select to authenticated using (public.is_workspace_member(workspace_id));
 create policy activity_select on public.activity_events for select to authenticated using (public.is_workspace_member(workspace_id));
 -- workspace_invites: RLS on, no policy, no grant → invisible to clients.
+-- The provisioning script (service role) fills the allow-list; grant it explicitly rather than rely on a dashboard default.
+grant select, insert, update, delete on public.workspace_invites to service_role;
 
 -- profiles: co-founders see each other; you edit only yourself, only these columns
 grant select on public.profiles to authenticated;
