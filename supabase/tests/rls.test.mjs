@@ -316,3 +316,10 @@ test("every workspace table has RLS enabled and anon holds no table privileges",
   const anon = await q(`select table_name from information_schema.role_table_grants where grantee='anon' and table_schema='public'`);
   assert.deepEqual(anon, []);
 });
+
+test("foreign keys the app's PostgREST queries depend on exist", async () => {
+  const names = (await q(`select conname from pg_constraint where contype='f' and connamespace='public'::regnamespace`)).map((r) => r.conname);
+  for (const fk of ["task_comments_author_id_fkey", "goal_milestones_goal_id_fkey", "tasks_assignee_id_fkey", "messages_attachment_id_fkey"]) {
+    assert.ok(names.includes(fk), `missing FK ${fk}`);
+  }
+});

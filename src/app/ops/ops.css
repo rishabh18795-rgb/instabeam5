@@ -1,0 +1,199 @@
+/* InstaBeam Workspace design tokens + component classes.
+   Loaded only by /ops routes (imported in src/app/ops/layout.tsx). */
+
+.ops-root {
+  --ops-bg: #08090b;
+  --ops-surface: #101216;
+  --ops-surface-2: #171a20;
+  --ops-surface-3: #1e222a;
+  --ops-border: rgb(255 255 255 / 0.08);
+  --ops-border-strong: rgb(255 255 255 / 0.16);
+  --ops-text: #f3f5f7;
+  --ops-muted: #8d95a3;
+  --ops-faint: #5d6471;
+  --ops-cyan: #00d9ff;
+  --ops-cyan-text: #38e3ff;
+  --ops-cyan-soft: rgb(0 217 255 / 0.12);
+  --ops-lime: #c6ff3d;
+  --ops-lime-text: #c6ff3d;
+  --ops-lime-soft: rgb(198 255 61 / 0.12);
+  --ops-warn: #ffb020;
+  --ops-warn-soft: rgb(255 176 32 / 0.14);
+  --ops-danger: #ff5c6c;
+  --ops-danger-soft: rgb(255 92 108 / 0.14);
+  --ops-on-accent: #0b0b0b;
+  --ops-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -16px rgb(0 0 0 / 0.6);
+  --ops-glow: radial-gradient(60% 50% at 20% 0%, rgb(0 217 255 / 0.1), transparent 70%),
+    radial-gradient(50% 40% at 100% 0%, rgb(198 255 61 / 0.06), transparent 70%);
+  color-scheme: dark;
+}
+
+.ops-root[data-theme="light"] {
+  --ops-bg: #f4f5f7;
+  --ops-surface: #ffffff;
+  --ops-surface-2: #f0f2f5;
+  --ops-surface-3: #e6e9ee;
+  --ops-border: rgb(11 11 11 / 0.09);
+  --ops-border-strong: rgb(11 11 11 / 0.18);
+  --ops-text: #0b0b0b;
+  --ops-muted: #5b6270;
+  --ops-faint: #8a91a0;
+  --ops-cyan: #00bfe0;
+  --ops-cyan-text: #00758c;
+  --ops-cyan-soft: rgb(0 168 199 / 0.12);
+  --ops-lime: #b5f21e;
+  --ops-lime-text: #4a7600;
+  --ops-lime-soft: rgb(120 180 0 / 0.14);
+  --ops-warn: #b87500;
+  --ops-warn-soft: rgb(255 176 32 / 0.18);
+  --ops-danger: #d6293e;
+  --ops-danger-soft: rgb(214 41 62 / 0.1);
+  --ops-shadow: 0 1px 2px rgb(11 11 11 / 0.05), 0 8px 24px -14px rgb(11 11 11 / 0.18);
+  --ops-glow: radial-gradient(60% 50% at 20% 0%, rgb(0 191 224 / 0.1), transparent 70%),
+    radial-gradient(50% 40% at 100% 0%, rgb(181 242 30 / 0.12), transparent 70%);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  .ops-root[data-theme="system"] {
+    --ops-bg: #f4f5f7; --ops-surface: #ffffff; --ops-surface-2: #f0f2f5; --ops-surface-3: #e6e9ee;
+    --ops-border: rgb(11 11 11 / 0.09); --ops-border-strong: rgb(11 11 11 / 0.18);
+    --ops-text: #0b0b0b; --ops-muted: #5b6270; --ops-faint: #8a91a0;
+    --ops-cyan: #00bfe0; --ops-cyan-text: #00758c; --ops-cyan-soft: rgb(0 168 199 / 0.12);
+    --ops-lime: #b5f21e; --ops-lime-text: #4a7600; --ops-lime-soft: rgb(120 180 0 / 0.14);
+    --ops-warn: #b87500; --ops-warn-soft: rgb(255 176 32 / 0.18);
+    --ops-danger: #d6293e; --ops-danger-soft: rgb(214 41 62 / 0.1);
+    --ops-shadow: 0 1px 2px rgb(11 11 11 / 0.05), 0 8px 24px -14px rgb(11 11 11 / 0.18);
+    --ops-glow: radial-gradient(60% 50% at 20% 0%, rgb(0 191 224 / 0.1), transparent 70%),
+      radial-gradient(50% 40% at 100% 0%, rgb(181 242 30 / 0.12), transparent 70%);
+    color-scheme: light;
+  }
+}
+
+.ops-root {
+  min-height: 100dvh;
+  background: var(--ops-bg);
+  background-image: var(--ops-glow);
+  background-repeat: no-repeat;
+  color: var(--ops-text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.ops-root *, .ops-root *::before, .ops-root *::after { border-color: var(--ops-border); }
+.ops-root :focus-visible { outline: 2px solid var(--ops-cyan); outline-offset: 2px; border-radius: 6px; }
+.ops-root ::selection { background: var(--ops-cyan); color: #0b0b0b; }
+.ops-root a { color: inherit; text-decoration: none; }
+.ops-root ::-webkit-scrollbar { width: 10px; height: 10px; }
+.ops-root ::-webkit-scrollbar-thumb { background: var(--ops-surface-3); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+
+/* ── surfaces ── */
+.ops-card {
+  background: var(--ops-surface);
+  border: 1px solid var(--ops-border);
+  border-radius: 16px;
+  box-shadow: var(--ops-shadow);
+}
+.ops-card-pad { padding: 20px; }
+.ops-card-hover { transition: border-color .18s, transform .18s; }
+.ops-card-hover:hover { border-color: var(--ops-border-strong); transform: translateY(-1px); }
+.ops-muted { color: var(--ops-muted); }
+.ops-faint { color: var(--ops-faint); }
+.ops-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ops-muted); }
+.ops-h1 { font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 650; letter-spacing: -0.02em; line-height: 1.15; }
+.ops-h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.ops-divider { height: 1px; background: var(--ops-border); border: 0; }
+
+/* ── buttons ── */
+.ops-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 38px; padding: 0 14px; border-radius: 10px; font-weight: 550; font-size: 13.5px; white-space: nowrap;
+  background: var(--ops-surface-2); color: var(--ops-text); border: 1px solid var(--ops-border);
+  cursor: pointer; transition: background .15s, border-color .15s, transform .1s, opacity .15s;
+}
+.ops-btn:hover { background: var(--ops-surface-3); border-color: var(--ops-border-strong); }
+.ops-btn:active { transform: translateY(1px); }
+.ops-btn:disabled, .ops-btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.ops-btn-primary { background: var(--ops-lime); color: var(--ops-on-accent); border-color: transparent; }
+.ops-btn-primary:hover { background: var(--ops-lime); filter: brightness(1.06); border-color: transparent; }
+.ops-btn-cyan { background: var(--ops-cyan); color: var(--ops-on-accent); border-color: transparent; }
+.ops-btn-cyan:hover { background: var(--ops-cyan); filter: brightness(1.06); border-color: transparent; }
+.ops-btn-ghost { background: transparent; border-color: transparent; }
+.ops-btn-ghost:hover { background: var(--ops-surface-2); border-color: transparent; }
+.ops-btn-danger { color: var(--ops-danger); }
+.ops-btn-danger:hover { background: var(--ops-danger-soft); border-color: transparent; }
+.ops-btn-sm { height: 30px; padding: 0 10px; font-size: 12.5px; border-radius: 8px; }
+.ops-btn-icon { width: 38px; padding: 0; }
+.ops-btn-icon.ops-btn-sm { width: 30px; }
+
+/* ── form controls ── */
+.ops-label { display: block; font-size: 12px; font-weight: 550; color: var(--ops-muted); margin-bottom: 6px; }
+.ops-input, .ops-select, .ops-textarea {
+  width: 100%; background: var(--ops-surface-2); color: var(--ops-text);
+  border: 1px solid var(--ops-border); border-radius: 10px; padding: 0 12px; height: 40px; font-size: 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.ops-textarea { height: auto; padding: 10px 12px; min-height: 84px; resize: vertical; }
+.ops-input::placeholder, .ops-textarea::placeholder { color: var(--ops-faint); }
+.ops-input:hover, .ops-select:hover, .ops-textarea:hover { border-color: var(--ops-border-strong); }
+.ops-input:focus, .ops-select:focus, .ops-textarea:focus { outline: none; border-color: var(--ops-cyan); box-shadow: 0 0 0 3px var(--ops-cyan-soft); }
+.ops-select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238d95a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+.ops-select option { background: var(--ops-surface); color: var(--ops-text); }
+.ops-input-sm { height: 32px; font-size: 13px; border-radius: 8px; }
+.ops-error { color: var(--ops-danger); font-size: 12.5px; }
+
+/* ── badges / chips ── */
+.ops-badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: var(--ops-surface-3); color: var(--ops-muted); white-space: nowrap; }
+.ops-badge-cyan { background: var(--ops-cyan-soft); color: var(--ops-cyan-text); }
+.ops-badge-lime { background: var(--ops-lime-soft); color: var(--ops-lime-text); }
+.ops-badge-warn { background: var(--ops-warn-soft); color: var(--ops-warn); }
+.ops-badge-danger { background: var(--ops-danger-soft); color: var(--ops-danger); }
+.ops-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+
+/* ── progress ── */
+.ops-progress { height: 8px; border-radius: 999px; background: var(--ops-surface-3); overflow: hidden; }
+.ops-progress > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--ops-cyan), var(--ops-lime)); transition: width .6s cubic-bezier(.16, 1, .3, 1); }
+.ops-progress-sm { height: 5px; }
+
+/* ── nav ── */
+.ops-nav-link { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: 10px; color: var(--ops-muted); font-weight: 520; transition: background .15s, color .15s; position: relative; }
+.ops-nav-link:hover { background: var(--ops-surface-2); color: var(--ops-text); }
+.ops-nav-link[aria-current="page"] { background: var(--ops-surface-2); color: var(--ops-text); }
+.ops-nav-link[aria-current="page"]::before { content: ""; position: absolute; left: -12px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: linear-gradient(var(--ops-cyan), var(--ops-lime)); }
+.ops-nav-link[aria-current="page"] svg { color: var(--ops-cyan-text); }
+
+/* ── tabs / segmented ── */
+.ops-seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--ops-surface-2); border: 1px solid var(--ops-border); border-radius: 12px; }
+.ops-seg a, .ops-seg button { height: 30px; padding: 0 12px; border-radius: 9px; font-size: 13px; font-weight: 550; color: var(--ops-muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; background: transparent; border: 0; white-space: nowrap; }
+.ops-seg a:hover, .ops-seg button:hover { color: var(--ops-text); }
+.ops-seg [aria-current="page"], .ops-seg [aria-pressed="true"] { background: var(--ops-surface); color: var(--ops-text); box-shadow: 0 1px 2px rgb(0 0 0 / 0.25); }
+
+/* ── dialog ── */
+.ops-dialog { background: var(--ops-surface); color: var(--ops-text); border: 1px solid var(--ops-border-strong); border-radius: 18px; padding: 0; width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.7); margin: auto; overflow: hidden; }
+.ops-dialog::backdrop { background: rgb(4 6 8 / 0.62); backdrop-filter: blur(3px); }
+.ops-dialog[open] { animation: ops-pop .22s cubic-bezier(.16, 1, .3, 1); }
+.ops-dialog-wide { width: min(760px, calc(100vw - 24px)); }
+
+/* ── misc ── */
+.ops-avatar { display: inline-grid; place-items: center; border-radius: 999px; font-weight: 650; color: var(--ops-on-accent); background: linear-gradient(135deg, var(--ops-cyan), var(--ops-lime)); overflow: hidden; flex: none; }
+.ops-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ops-skeleton { background: linear-gradient(90deg, var(--ops-surface-2), var(--ops-surface-3), var(--ops-surface-2)); background-size: 200% 100%; animation: ops-shimmer 1.4s infinite; border-radius: 10px; }
+.ops-toast { background: var(--ops-surface-3); color: var(--ops-text); border: 1px solid var(--ops-border-strong); border-radius: 12px; padding: 10px 14px; box-shadow: 0 12px 30px -10px rgb(0 0 0 / 0.5); animation: ops-pop .25s cubic-bezier(.16, 1, .3, 1); }
+.ops-kbd { font-size: 11px; padding: 1px 6px; border-radius: 5px; background: var(--ops-surface-3); color: var(--ops-muted); border: 1px solid var(--ops-border); }
+.ops-table { width: 100%; border-collapse: collapse; }
+.ops-table th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ops-muted); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--ops-border); }
+.ops-table td { padding: 12px 14px; border-bottom: 1px solid var(--ops-border); vertical-align: middle; }
+.ops-table tr:last-child td { border-bottom: 0; }
+.ops-table tbody tr:hover td { background: var(--ops-surface-2); }
+.ops-msg-link { color: var(--ops-cyan-text); text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+
+.ops-in { animation: ops-in .5s cubic-bezier(.16, 1, .3, 1) both; }
+.ops-in-2 { animation-delay: .06s; } .ops-in-3 { animation-delay: .12s; } .ops-in-4 { animation-delay: .18s; }
+
+@keyframes ops-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ops-pop { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes ops-shimmer { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ops-root *, .ops-root *::before, .ops-root *::after { animation-duration: .001ms !important; animation-delay: 0s !important; transition-duration: .001ms !important; }
+}

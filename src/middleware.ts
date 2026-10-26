@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ADMIN_SESSION_COOKIE, verifySessionToken } from "@/lib/admin-auth";
+import { opsMiddleware } from "@/lib/ops/supabase/middleware";
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/ops/:path*"],
 };
 
 const PUBLIC_PATHS = new Set(["/admin/login", "/api/admin/login"]);
@@ -19,6 +20,8 @@ function withNoindex(response: NextResponse, pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // The co-founder workspace has its own Supabase-session gate.
+  if (pathname === "/ops" || pathname.startsWith("/ops/")) return opsMiddleware(request);
   if (PUBLIC_PATHS.has(pathname)) return withNoindex(NextResponse.next(), pathname);
 
   const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;

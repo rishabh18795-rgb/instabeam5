@@ -578,7 +578,7 @@ declare g public.goals%rowtype; uid uuid;
 begin
   select * into g from public.goals where id = new.goal_id;
   perform public.log_activity('goal.updated', 'goal', g.id, g.title, g.project_id,
-    jsonb_build_object('from', new.previous_value, 'to', new.new_value, 'unit', g.unit), new.author_id);
+    jsonb_build_object('from', new.previous_value, 'to', new.new_value, 'unit', g.unit, 'note', new.note), new.author_id);
   for uid in
     select m.user_id from public.workspace_members m
     where m.workspace_id = g.workspace_id and m.user_id is distinct from new.author_id
@@ -901,3 +901,6 @@ create policy workspace_files_delete on storage.objects for delete to authentica
   using (bucket_id = 'workspace-files'
          and owner_id = (select auth.uid())::text
          and public.is_workspace_member(public.default_workspace_id()));
+
+-- Make PostgREST pick up the new tables/functions immediately.
+notify pgrst, 'reload schema';
