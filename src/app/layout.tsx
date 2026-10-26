@@ -132,22 +132,26 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <head>
-        {/* Must stay first — see the comment on consentDefaultScript. */}
-        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: consentDefaultScript }} />
-        {/* Plain <script> tag, exactly as Google's AdSense snippet
-            specifies — next/script adds a data-nscript attribute that
-            adsbygoogle.js flags with a console warning ("head tag doesn't
-            support data-nscript attribute"). `async` already makes this
-            non-render-blocking without needing next/script's strategy
-            prop. Nothing else React-managed lives in <head> — AdSense
-            mutates its surroundings once it loads, which caused a real
-            hydration mismatch when the JSON-LD script used to sit right
-            next to it here (see the moved copy at the end of <body>). */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114058216046667"
-          crossOrigin="anonymous"
-        />
+        {/* Withheld on /admin and /ops: no ad or analytics script may load on
+            pages that render customer data. Order inside is unchanged. */}
+        <ConditionalChrome>
+          {/* Must stay first — see the comment on consentDefaultScript. */}
+          <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: consentDefaultScript }} />
+          {/* Plain <script> tag, exactly as Google's AdSense snippet
+              specifies — next/script adds a data-nscript attribute that
+              adsbygoogle.js flags with a console warning ("head tag doesn't
+              support data-nscript attribute"). `async` already makes this
+              non-render-blocking without needing next/script's strategy
+              prop. Nothing else React-managed lives in <head> — AdSense
+              mutates its surroundings once it loads, which caused a real
+              hydration mismatch when the JSON-LD script used to sit right
+              next to it here (see the moved copy at the end of <body>). */}
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4114058216046667"
+            crossOrigin="anonymous"
+          />
+        </ConditionalChrome>
       </head>
       <body className="flex min-h-full flex-col bg-paper text-ink">
         {/* Required by Google's GTM install spec: a <noscript> fallback
@@ -155,31 +159,33 @@ export default function RootLayout({
             JavaScript disabled. @next/third-parties's GoogleTagManager
             component only renders the <head> script half — this half
             has to be added separately. */}
-        {GTM_ID && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: "none", visibility: "hidden" }}
-              title="Google Tag Manager"
-            />
-          </noscript>
-        )}
-        {/* Meta's own official noscript fallback for the Pixel — same
-            reasoning as the GTM one above. */}
-        {META_PIXEL_ID && (
-          <noscript>
-            {/* eslint-disable-next-line @next/next/no-img-element -- 1x1 tracking beacon, not a content image; next/image doesn't apply here. */}
-            <img
-              height="1"
-              width="1"
-              alt=""
-              style={{ display: "none" }}
-              src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-            />
-          </noscript>
-        )}
+        <ConditionalChrome>
+          {GTM_ID && (
+            <noscript>
+              <iframe
+                src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+                height="0"
+                width="0"
+                style={{ display: "none", visibility: "hidden" }}
+                title="Google Tag Manager"
+              />
+            </noscript>
+          )}
+          {/* Meta's own official noscript fallback for the Pixel — same
+              reasoning as the GTM one above. */}
+          {META_PIXEL_ID && (
+            <noscript>
+              {/* eslint-disable-next-line @next/next/no-img-element -- 1x1 tracking beacon, not a content image; next/image doesn't apply here. */}
+              <img
+                height="1"
+                width="1"
+                alt=""
+                style={{ display: "none" }}
+                src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+              />
+            </noscript>
+          )}
+        </ConditionalChrome>
         <ConsentProvider>
           <ToastProvider>
             <ConditionalChrome>
@@ -191,29 +197,33 @@ export default function RootLayout({
               <WhatsAppButton />
             </ConditionalChrome>
           </ToastProvider>
-          <CookieConsentBanner />
+          <ConditionalChrome>
+            <CookieConsentBanner />
+          </ConditionalChrome>
         </ConsentProvider>
         {/* Static, deterministic content — suppressHydrationWarning is
             safe here and guards against any future third-party script
             (AdSense or otherwise) mutating nearby <body> nodes the same
             way one did in <head>. */}
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd),
-          }}
-        />
-        {/* @next/third-parties loads gtm.js with next/script's
-            "afterInteractive" strategy — it executes after hydration,
-            well after the synchronous consent-default script in <head>
-            has already run, so GTM's own consent-aware tag firing sees
-            the correct default the moment it initializes. GA4 itself is
-            no longer loaded directly here — it's configured as a tag
-            inside this GTM container instead (see the migration report
-            for the exact setup). */}
-        {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
-        <MetaPixel />
+        <ConditionalChrome>
+          <script
+            type="application/ld+json"
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationJsonLd),
+            }}
+          />
+          {/* @next/third-parties loads gtm.js with next/script's
+              "afterInteractive" strategy — it executes after hydration,
+              well after the synchronous consent-default script in <head>
+              has already run, so GTM's own consent-aware tag firing sees
+              the correct default the moment it initializes. GA4 itself is
+              no longer loaded directly here — it's configured as a tag
+              inside this GTM container instead (see the migration report
+              for the exact setup). */}
+          {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
+          <MetaPixel />
+        </ConditionalChrome>
       </body>
     </html>
   );
