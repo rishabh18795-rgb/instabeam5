@@ -9,6 +9,8 @@ import { isWorkspaceConfigured } from "@/lib/ops/supabase/config";
  *   {{ .SiteURL }}/ops/auth/confirm?token_hash={{ .TokenHash }}&type=invite
  * The token is consumed server-side and never rendered or logged.
  */
+export const preferredRegion = "hnd1";
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const tokenHash = searchParams.get("token_hash");

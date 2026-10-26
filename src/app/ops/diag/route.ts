@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/ops/supabase/server";
 
 export const dynamic = "force-dynamic";
+export const preferredRegion = "hnd1";
 
 async function time<T>(fn: () => PromiseLike<T>) {
   const s = performance.now();

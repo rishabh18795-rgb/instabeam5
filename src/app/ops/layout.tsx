@@ -13,6 +13,12 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { themeColor: "#08090b", width: "device-width", initialScale: 1 };
 
+// Run the workspace's server functions next to its database (Supabase project is in
+// Tokyo, ap-northeast-1). Measured from Vercel's default iad1 region, one database round
+// trip cost 240-690 ms and every page needs at least two; co-locating removes that.
+// Scoped to /ops only — the public site's functions keep the project's default region.
+export const preferredRegion = "hnd1";
+
 // Dynamic by design: the theme comes from a cookie, and everything under
 // /ops is per-user. None of this touches the public pages' static output.
 export default async function OpsLayout({ children }: { children: React.ReactNode }) {
