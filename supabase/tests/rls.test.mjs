@@ -57,6 +57,7 @@ const fails = async (p, re) => assert.rejects(p, re ?? /./);
 before(async () => {
   await db.exec(STUBS);
   await db.exec(readFileSync(new URL("../migrations/0002_cofounder_workspace.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../migrations/0003_chat_read_marker.sql", import.meta.url), "utf8"));
   // Provisioning script's job: fill the allow-list (service role / owner).
   await db.exec(`insert into public.workspace_invites (email, display_name) values
     ('${A_EMAIL}','Founder A'), ('${B_EMAIL}','Founder B')`);
@@ -322,4 +323,21 @@ test("foreign keys the app's PostgREST queries depend on exist", async () => {
   for (const fk of ["task_comments_author_id_fkey", "goal_milestones_goal_id_fkey", "tasks_assignee_id_fkey", "messages_attachment_id_fkey"]) {
     assert.ok(names.includes(fk), `missing FK ${fk}`);
   }
+});
+
+test("mark_conversation_read stamps the database clock and only touches the caller's own marker", async () => {
+  const marker = async (uid) => (await q(`select last_read_at from public.conversation_members where user_id=$1`, [uid]))[0].last_read_at.toISOString();
+  await as(B, () => db.query(`insert into public.messages (conversation_id, body) values ($1,'read-marker test')`, [convId]));
+  const bBefore = await marker(B);
+  await as(A, async () => {
+    assert.ok((await q(`select public.unread_message_count() n`))[0].n >= 1);
+    await db.query(`select public.mark_conversation_read($1)`, [convId]);
+    assert.equal((await q(`select public.unread_message_count() n`))[0].n, 0);
+  });
+  assert.equal(await marker(B), bBefore, "A's call must not change B's read marker");
+  const aAfter = new Date(await marker(A)).getTime();
+  assert.ok(Math.abs(aAfter - Date.now()) < 60_000, "A's marker should be ~now (database clock)");
+  const before = await marker(A);
+  await as(OUT, () => db.query(`select public.mark_conversation_read($1)`, [convId])); // no-op, no error
+  assert.equal(await marker(A), before);
 });

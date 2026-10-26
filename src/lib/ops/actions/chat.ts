@@ -27,9 +27,10 @@ export async function sendMessage(input: unknown): Promise<Result<{ id: string; 
 }
 
 export async function markConversationRead(conversationId: string): Promise<Result> {
-  const { supabase, userId } = await requireSessionForAction();
+  const { supabase } = await requireSessionForAction();
   if (!uuid.safeParse(conversationId).success) return fail("Unknown conversation.");
-  const { error } = await supabase.from("conversation_members").update({ last_read_at: new Date().toISOString() }).eq("conversation_id", conversationId).eq("user_id", userId);
+  // Stamped with the database clock (migration 0003), never the web server's.
+  const { error } = await supabase.rpc("mark_conversation_read", { p_conversation: conversationId });
   if (error) return fail(dbError(error));
   revalidatePath("/ops", "layout");
   return ok();
