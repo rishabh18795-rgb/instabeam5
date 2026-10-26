@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getServerSupabase } from "../supabase/server";
+import { safeNext } from "../safe-next";
 import { isWorkspaceConfigured } from "../supabase/config";
 
 export type AuthState = { error?: string } | undefined;
@@ -10,13 +11,6 @@ const credentials = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
   password: z.string().min(1, "Enter your password.").max(200),
 });
-
-/** Only same-site /ops paths — blocks open redirects via ?next=. */
-export function safeNext(next: unknown): string {
-  if (typeof next !== "string") return "/ops";
-  if (!next.startsWith("/ops") || next.startsWith("//") || next.includes("\\") || next.includes("://")) return "/ops";
-  return next;
-}
 
 export async function signIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
   if (!isWorkspaceConfigured) return { error: "The workspace database isn't configured yet." };

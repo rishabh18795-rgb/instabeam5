@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/ops/AuthShell";
 import { getSession } from "@/lib/ops/auth";
-import { safeNext } from "@/lib/ops/actions/auth";
+import { safeNext } from "@/lib/ops/safe-next";
 import { isWorkspaceConfigured } from "@/lib/ops/supabase/config";
 import { LoginForm } from "./LoginForm";
 
