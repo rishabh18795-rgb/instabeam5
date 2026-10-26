@@ -52,3 +52,25 @@ export async function verifySessionToken(token: string | undefined | null) {
   const expectedSig = await hmac(secret, expiryStr);
   return safeEqual(sig, expectedSig);
 }
+
+/**
+ * Defence in depth for /api/admin/* handlers. Middleware already gates these
+ * routes; this re-checks the signed cookie inside the handler so a routing or
+ * matcher mistake can never expose lead data. Returns a 401 Response to send,
+ * or null when the request carries a valid admin session.
+ */
+export async function adminGuard(request: Request): Promise<Response | null> {
+  const cookie = request.headers.get("cookie") ?? "";
+  const token = cookie
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${ADMIN_SESSION_COOKIE}=`))
+    ?.slice(ADMIN_SESSION_COOKIE.length + 1);
+  let ok = false;
+  try {
+    ok = await verifySessionToken(token);
+  } catch {
+    ok = false; // secret not configured → fail closed
+  }
+  return ok ? null : Response.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+}

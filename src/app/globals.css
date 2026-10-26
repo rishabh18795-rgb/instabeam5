@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* The private workspace (/ops) ships its own utilities in app/ops/ops.css.
+   Excluding its source here keeps this public stylesheet byte-for-byte what
+   the marketing site needs — no workspace classes in what visitors download. */
+@source not "../app/ops";
+@source not "../components/ops";
+@source not "../lib/ops";
+
 /*
   InstaBeam Design System
   ------------------------------------------------------------

@@ -1,5 +1,13 @@
 /* InstaBeam Workspace design tokens + component classes.
-   Loaded only by /ops routes (imported in src/app/ops/layout.tsx). */
+   Loaded only by /ops routes (imported in src/app/ops/layout.tsx).
+   Has its own Tailwind utilities build (theme + utilities, no preflight —
+   the root stylesheet already provides that) scoped to the workspace's
+   source files, so none of it leaks into the public site's CSS. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "./";
+@source "../../components/ops";
+@source "../../lib/ops";
 
 .ops-root {
   --ops-bg: #08090b;

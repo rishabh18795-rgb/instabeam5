@@ -1,3 +1,4 @@
+import { adminGuard } from "@/lib/admin-auth";
 import { listAllLeads, type Lead } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -26,6 +27,8 @@ function csvCell(value: unknown) {
 }
 
 export async function GET(request: Request) {
+  const denied = await adminGuard(request);
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") ?? undefined;

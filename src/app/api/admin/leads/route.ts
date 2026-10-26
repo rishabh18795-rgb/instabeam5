@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { adminGuard } from "@/lib/admin-auth";
 import { deleteLead, leadStatuses, listLeads, updateLead } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  const denied = await adminGuard(request);
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") ?? undefined;
@@ -30,6 +33,8 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(request: Request) {
+  const denied = await adminGuard(request);
+  if (denied) return denied;
   try {
     const body = patchSchema.parse(await request.json());
     const { id, ...patch } = body;
@@ -47,6 +52,8 @@ export async function PATCH(request: Request) {
 const deleteSchema = z.object({ id: z.string().uuid() });
 
 export async function DELETE(request: Request) {
+  const denied = await adminGuard(request);
+  if (denied) return denied;
   try {
     const { searchParams } = new URL(request.url);
     const { id } = deleteSchema.parse({ id: searchParams.get("id") });
