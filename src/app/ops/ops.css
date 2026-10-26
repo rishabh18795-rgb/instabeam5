@@ -167,6 +167,9 @@
 .ops-nav-link { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: 10px; color: var(--ops-muted); font-weight: 520; transition: background .15s, color .15s; position: relative; }
 .ops-nav-link:hover { background: var(--ops-surface-2); color: var(--ops-text); }
 .ops-nav-link[aria-current="page"] { background: var(--ops-surface-2); color: var(--ops-text); }
+.ops-nav-pending { display: none; width: 14px; height: 14px; border-radius: 999px; border: 2px solid var(--ops-border-strong); border-top-color: var(--ops-cyan); animation: ops-spin .7s linear infinite; position: absolute; right: 12px; }
+.ops-nav-pending[data-pending="true"] { display: block; }
+.ops-nav-link:has([data-pending="true"]) { color: var(--ops-text); }
 .ops-nav-link[aria-current="page"]::before { content: ""; position: absolute; left: -12px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: linear-gradient(var(--ops-cyan), var(--ops-lime)); }
 .ops-nav-link[aria-current="page"] svg { color: var(--ops-cyan-text); }
 
@@ -198,6 +201,7 @@
 .ops-in { animation: ops-in .5s cubic-bezier(.16, 1, .3, 1) both; }
 .ops-in-2 { animation-delay: .06s; } .ops-in-3 { animation-delay: .12s; } .ops-in-4 { animation-delay: .18s; }
 
+@keyframes ops-spin { to { transform: rotate(360deg); } }
 @keyframes ops-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes ops-pop { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes ops-shimmer { to { background-position: -200% 0; } }

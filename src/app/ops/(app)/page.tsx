@@ -20,7 +20,7 @@ export default async function OverviewPage() {
 
   const [
     activeProjects, dueToday, overdue, completedWeek, goalsRes, upcomingTasks, upcomingProjects, upcomingGoals,
-    convo, filesRes, activityRes, tasksTotal, goalsTotal, filesTotal, messagesTotal,
+    messagesRes, filesRes, activityRes, tasksTotal, goalsTotal, filesTotal, messagesTotal,
   ] = await Promise.all([
     supabase.from("projects").select("id", head).eq("status", "active"),
     supabase.from("tasks").select("id", head).eq("assignee_id", userId).eq("due_date", today).neq("status", "completed"),
@@ -30,7 +30,7 @@ export default async function OverviewPage() {
     supabase.from("tasks").select("id,title,due_date,assignee_id,priority").neq("status", "completed").not("due_date", "is", null).lte("due_date", horizon).order("due_date").limit(6),
     supabase.from("projects").select("id,name,deadline").neq("status", "completed").not("deadline", "is", null).lte("deadline", horizon).order("deadline").limit(4),
     supabase.from("goals").select("id,title,deadline").neq("status", "achieved").not("deadline", "is", null).lte("deadline", horizon).order("deadline").limit(4),
-    supabase.from("conversations").select("id").limit(1).maybeSingle(),
+    supabase.from("messages").select("id,conversation_id,sender_id,body,reply_to,attachment_id,created_at").order("created_at", { ascending: false }).limit(4),
     supabase.from("attachments").select("id,file_name,size_bytes,created_at,uploaded_by").neq("context", "chat").order("created_at", { ascending: false }).limit(4),
     supabase.from("activity_events").select("id,actor_id,type,entity_type,entity_id,entity_title,project_id,meta,created_at").order("created_at", { ascending: false }).limit(8),
     supabase.from("tasks").select("id", head),
@@ -39,9 +39,7 @@ export default async function OverviewPage() {
     supabase.from("messages").select("id", head),
   ]);
 
-  const messages: Message[] = convo.data
-    ? ((await supabase.from("messages").select("id,conversation_id,sender_id,body,reply_to,attachment_id,created_at").eq("conversation_id", convo.data.id).order("created_at", { ascending: false }).limit(4)).data ?? [])
-    : [];
+  const messages = (messagesRes.data ?? []) as Message[];
 
   const goalRows = goalsRes.data ?? [];
   const goalProgress = goalRows.length ? Math.round(goalRows.reduce((s, g) => s + (g.progress as number), 0) / goalRows.length) : null;

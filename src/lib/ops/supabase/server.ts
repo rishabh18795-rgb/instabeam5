@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { workspaceSupabaseAnonKey, workspaceSupabaseUrl } from "./config";
 
 /** Server client bound to the request's session cookies. Never uses the service role. */
-export async function getServerSupabase() {
+/** One client per request: the layout and the page share it. */
+export const getServerSupabase = cache(async () => {
   const store = await cookies();
   return createServerClient(workspaceSupabaseUrl, workspaceSupabaseAnonKey, {
     cookies: {
@@ -18,4 +20,4 @@ export async function getServerSupabase() {
       },
     },
   });
-}
+});

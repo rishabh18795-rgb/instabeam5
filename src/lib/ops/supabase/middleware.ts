@@ -31,15 +31,18 @@ export async function opsMiddleware(request: NextRequest) {
     },
   });
 
-  // getUser() validates the JWT with the auth server (getSession() would trust the cookie).
-  const { data } = await supabase.auth.getUser();
+  // getClaims() verifies the JWT signature and expiry locally against the project's
+  // cached public keys (no round trip to the auth server on every click or prefetch)
+  // and refreshes the session when it has expired. It never trusts an unsigned cookie.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? { id: data.claims.sub } : null;
 
-  if (!data.user && !isPublicOpsPath(pathname)) {
+  if (!user && !isPublicOpsPath(pathname)) {
     const url = new URL("/ops/login", request.url);
     if (pathname !== "/ops") url.searchParams.set("next", pathname + search);
     return harden(NextResponse.redirect(url));
   }
-  if (data.user && (pathname === "/ops/login" || pathname === "/ops/forgot-password")) {
+  if (user && (pathname === "/ops/login" || pathname === "/ops/forgot-password")) {
     return harden(NextResponse.redirect(new URL("/ops", request.url)));
   }
   return harden(response);

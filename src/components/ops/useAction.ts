@@ -18,7 +18,9 @@ export function useAction() {
           if (r.ok) {
             const msg = opts?.success ?? r.message;
             if (msg) toast.ok(msg);
-            if (opts?.refresh !== false) router.refresh();
+            // Every mutating server action calls revalidatePath(), which already returns the
+            // fresh page in the same response. Refreshing again would render the tree twice.
+            if (opts?.refresh === true) router.refresh();
           } else toast.error(r.error);
           opts?.onDone?.(r);
         } catch (e) {

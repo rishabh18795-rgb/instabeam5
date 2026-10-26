@@ -2,9 +2,9 @@
 import {
   Activity, FolderKanban, LayoutDashboard, ListChecks, LogOut, Menu, MessageCircle, Paperclip, Settings, Target,
 } from "lucide-react";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { LogoMark } from "@/components/brand/Logo";
 import { signOut } from "@/lib/ops/actions/auth";
 import type { Notification, Person } from "@/lib/ops/types";
@@ -26,13 +26,30 @@ const NAV = [
 ] as const;
 const MOBILE_PRIMARY = ["/ops", "/ops/chat", "/ops/tasks", "/ops/files"];
 
+/** Lives inside a <Link>: reports that link's real navigation state upward the moment it is clicked. */
+function NavPending({ href, report }: { href: string; report: (href: string, pending: boolean) => void }) {
+  const { pending } = useLinkStatus();
+  useEffect(() => {
+    report(href, pending);
+    return () => report(href, false);
+  }, [href, pending, report]);
+  return <span aria-hidden className="ops-nav-pending" data-pending={pending} />;
+}
+
 export function AppShell({ me, theme, unreadChat, openTasks, notifications, children }: {
   me: Person & { email: string }; theme: "dark" | "light" | "system"; unreadChat: number; openTasks: number;
   notifications: Notification[]; children: ReactNode;
 }) {
   const pathname = usePathname();
   const [menu, setMenu] = useState(false);
-  const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
+  // The link being navigated to (from useLinkStatus — real state, not a timer). The sidebar
+  // highlights it immediately instead of waiting for the server to answer.
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const report = useCallback((href: string, pending: boolean) => {
+    setPendingHref((cur) => (pending ? href : cur === href ? null : cur));
+  }, []);
+  const current = pendingHref ?? pathname;
+  const isActive = (href: string, exact?: boolean) => (exact ? current === href : current === href || current.startsWith(`${href}/`));
   const badgeFor = (b?: string) => (b === "chat" ? unreadChat : b === "tasks" ? openTasks : 0);
 
   const link = (n: (typeof NAV)[number], onClick?: () => void) => {
@@ -40,6 +57,7 @@ export function AppShell({ me, theme, unreadChat, openTasks, notifications, chil
     return (
       <Link key={n.href} href={n.href} className="ops-nav-link" aria-current={isActive(n.href, "exact" in n ? n.exact : false) ? "page" : undefined} onClick={onClick}>
         <n.Icon size={18} aria-hidden />
+        <NavPending href={n.href} report={report} />
         <span className="flex-1 truncate">{n.label}</span>
         {count > 0 && "badge" in n && n.badge === "chat" && (
           <span className="grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold" style={{ background: "var(--ops-lime)", color: "var(--ops-on-accent)" }}>{count > 99 ? "99+" : count}</span>
@@ -92,6 +110,7 @@ export function AppShell({ me, theme, unreadChat, openTasks, notifications, chil
             <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined}
               className={cn("relative flex h-16 flex-col items-center justify-center gap-1 text-[10.5px] font-medium", active ? "" : "ops-muted")} style={active ? { color: "var(--ops-cyan-text)" } : undefined}>
               <n.Icon size={21} />
+              <NavPending href={n.href} report={report} />
               {n.label.replace("Co-Founder ", "").replace("Overview", "Home")}
               {"badge" in n && n.badge === "chat" && count > 0 && <span className="absolute right-[26%] top-2 h-2.5 w-2.5 rounded-full" style={{ background: "var(--ops-lime)" }} />}
             </Link>

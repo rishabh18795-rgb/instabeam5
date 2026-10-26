@@ -10,7 +10,13 @@ export const metadata: Metadata = { title: "Co-Founder Chat" };
 export default async function ChatPage() {
   const { supabase, userId, people, profile } = await getBasics();
   const other = people.find((p) => p.id !== userId);
-  const { data: convo } = await supabase.from("conversations").select("id").limit(1).maybeSingle();
+
+  // Everything in one parallel round trip. RLS limits all three to the caller's own conversation.
+  const [{ data: convo }, { data: rows }, { data: members }] = await Promise.all([
+    supabase.from("conversations").select("id").limit(1).maybeSingle(),
+    supabase.from("messages").select("id,conversation_id,sender_id,body,reply_to,attachment_id,created_at,attachment:attachments(id,file_name,size_bytes,mime_type)").order("created_at", { ascending: false }).limit(200),
+    supabase.from("conversation_members").select("user_id,last_read_at"),
+  ]);
 
   if (!convo || !other) {
     return (
@@ -22,15 +28,7 @@ export default async function ChatPage() {
     );
   }
 
-  const [{ data: rows }, { data: members }] = await Promise.all([
-    supabase.from("messages").select("id,conversation_id,sender_id,body,reply_to,attachment_id,created_at").eq("conversation_id", convo.id).order("created_at", { ascending: false }).limit(200),
-    supabase.from("conversation_members").select("user_id,last_read_at").eq("conversation_id", convo.id),
-  ]);
-  const messages = ((rows ?? []) as Message[]).reverse();
-  const ids = [...new Set(messages.map((m) => m.attachment_id).filter(Boolean))] as string[];
-  const { data: atts } = ids.length ? await supabase.from("attachments").select("id,file_name,size_bytes,mime_type").in("id", ids) : { data: [] };
-  const attMap = new Map((atts ?? []).map((a) => [a.id as string, a]));
-  const hydrated = messages.map((m) => ({ ...m, attachment: m.attachment_id ? (attMap.get(m.attachment_id) as Message["attachment"]) ?? null : null }));
+  const hydrated = ((rows ?? []) as unknown as Message[]).reverse();
   const me = people.find((p) => p.id === userId) ?? { id: userId, display_name: profile.display_name, avatar_path: profile.avatar_path, avatar_url: profile.avatar_url };
 
   return (

@@ -1,16 +1,22 @@
 import "server-only";
-import { getPeople, requireSession } from "./auth";
+import { requireSession } from "./auth";
+import { getServerSupabase } from "./supabase/server";
 import type { Person } from "./types";
 
-/** Everything most pages need: session, both founders (with signed avatar URLs) and the project list. */
+/**
+ * Everything most pages need: session, both founders and the project list.
+ * The project list is fetched in the same round trip as the session check (RLS
+ * already limits it to members), so a page costs two sequential database round
+ * trips in total: this one, then its own queries.
+ */
 export async function getBasics() {
-  const session = await requireSession();
-  const [people, { data: projects }] = await Promise.all([
-    getPeople(),
-    session.supabase.from("projects").select("id,name,status").order("name"),
+  const supabase = await getServerSupabase();
+  const [session, { data: projects }] = await Promise.all([
+    requireSession(),
+    supabase.from("projects").select("id,name,status").order("name"),
   ]);
-  const byId = new Map<string, Person>(people.map((p) => [p.id, p]));
-  return { ...session, people, byId, projects: (projects ?? []) as { id: string; name: string; status: string }[] };
+  const byId = new Map<string, Person>(session.people.map((p) => [p.id, p]));
+  return { ...session, byId, projects: (projects ?? []) as { id: string; name: string; status: string }[] };
 }
 
 export const person = (byId: Map<string, Person>, id: string | null | undefined): Person | null => (id ? byId.get(id) ?? null : null);

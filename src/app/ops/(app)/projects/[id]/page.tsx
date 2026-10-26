@@ -19,19 +19,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   if (!uuid.safeParse(id).success) notFound();
   const { supabase, userId, people, byId, projects } = await getBasics();
-  const { data: project } = await supabase.from("projects").select("id,name,description,owner_id,status,priority,start_date,deadline,progress,progress_mode,created_at,updated_at").eq("id", id).maybeSingle();
-  if (!project) notFound();
-
-  const [tasksRes, filesRes, eventsRes] = await Promise.all([
+  const [projectRes, tasksRes, filesRes, eventsRes, commentsRes] = await Promise.all([
+    supabase.from("projects").select("id,name,description,owner_id,status,priority,start_date,deadline,progress,progress_mode,created_at,updated_at").eq("id", id).maybeSingle(),
     supabase.from("tasks").select("id,project_id,title,description,assignee_id,created_by,status,priority,start_date,due_date,completed_at,created_at,updated_at").eq("project_id", id).order("created_at", { ascending: false }),
     supabase.from("attachments").select("id,file_name,size_bytes,created_at,uploaded_by").eq("project_id", id).order("created_at", { ascending: false }).limit(20),
     supabase.from("activity_events").select("id,actor_id,type,entity_type,entity_id,entity_title,project_id,meta,created_at").eq("project_id", id).order("created_at", { ascending: false }).limit(15),
+    supabase.from("task_comments").select("id,task_id,author_id,body,created_at,tasks!inner(project_id)").eq("tasks.project_id", id).order("created_at", { ascending: false }).limit(8),
   ]);
+  const project = projectRes.data;
+  if (!project) notFound();
+  const comments = commentsRes.data;
   const tasks = ((tasksRes.data ?? []) as Task[]).map((t) => ({ ...t, project: { id, name: project.name as string } }));
-  const taskIds = tasks.map((t) => t.id);
-  const { data: comments } = taskIds.length
-    ? await supabase.from("task_comments").select("id,task_id,author_id,body,created_at").in("task_id", taskIds).order("created_at", { ascending: false }).limit(8)
-    : { data: [] };
   const titleOf = new Map(tasks.map((t) => [t.id, t.title]));
   const events = ((eventsRes.data ?? []) as ActivityEvent[]).map((e) => ({ ...e, project: null }));
 
