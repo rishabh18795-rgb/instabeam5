@@ -11,13 +11,15 @@ Everything is invitation-only; there is no public sign-up.
 3. Verify: `select count(*) from public.workspaces;` returns `1`, and `storage.buckets` has a **private** `workspace-files` bucket (25 MB limit).
 
 Automated check of the policies (no network needed): `npm run test:db`.
+Apply `0003_chat_read_marker.sql` after `0002` (stamps the chat read marker with the database clock).
+Note: Supabase forbids `DELETE FROM storage.objects` in SQL — delete files through the Storage API (the app does).
 
 ## 2. Auth settings (Supabase → Authentication)
 
 | Setting | Value |
 |---|---|
 | Sign-ups → *Allow new users to sign up* | **Off** (the database also rejects non-invited addresses) |
-| URL Configuration → *Site URL* | the workspace's deployed origin |
+| URL Configuration → *Site URL* | `<origin>/ops/set-password` — until custom SMTP is on (see §3) the default invite/reset e-mails return users to the Site URL with their session in the URL fragment, and that page consumes it |
 | URL Configuration → *Redirect URLs* | `<origin>/ops/set-password`, `<origin>/ops/auth/confirm` (and the Vercel preview origin while testing) |
 | Providers → Email | enabled, *Confirm email* on |
 
@@ -27,7 +29,7 @@ Supabase's built-in mailer only delivers to members of your Supabase organisatio
 **To invite a co-founder who isn't on your Supabase team, configure custom SMTP** (Authentication → SMTP Settings), e.g. Resend's SMTP
 (`smtp.resend.com`, user `resend`, password = a Resend API key, sender on a domain verified in Resend).
 
-Optional but recommended — use server-side token verification in the e-mail templates (Authentication → Email Templates):
+Supabase only lets you edit e-mail templates once custom SMTP is configured. After that, the recommended setup is server-side token verification in the templates (Authentication → Email Templates):
 
 - *Invite user* link: `{{ .SiteURL }}/ops/auth/confirm?token_hash={{ .TokenHash }}&type=invite`
 - *Reset password* link: `{{ .SiteURL }}/ops/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
